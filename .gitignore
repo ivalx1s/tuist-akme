@@ -1,3 +1,6 @@
+### Make ###
+.bootstrapped
+
 ### macOS ###
 .DS_Store
 .AppleDouble
