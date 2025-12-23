@@ -10,9 +10,12 @@ let project = ProjectFactory.makeFeature(
     product: .framework,
     dependencies: [
         .external(dependency: .algorithms),
-//         Example: .interface(.core(.networking))
+        // Example: .interface(.core(.networking))
     ],
     testDependencies: [
         // Example: .testing(.core(.networking))
+    ],
+    additionalSettings: [
+        : // Example: "OTHER_LDFLAGS": ["-ObjC"],
     ]
 )

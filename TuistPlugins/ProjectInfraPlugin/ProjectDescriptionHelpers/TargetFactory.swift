@@ -34,9 +34,27 @@ public enum TargetFactory {
         destinations: Destinations,
         product: Product,
         dependencies: [TargetDependency],
-        resources: ResourceFileElements?
+        resources: ResourceFileElements?,
+        additionalSettings: SettingsDictionary = [:]
     ) -> Target {
-        .target(
+        let settings: Settings = {
+            guard !additionalSettings.isEmpty else { return .regular }
+            return .settings(
+                configurations: BuildEnvironment.allCases.map { environment in
+                    let merged = environment
+                        .settings()
+                        .merging(additionalSettings) { _, new in new }
+                    switch environment {
+                    case .debug:
+                        return .debug(name: environment.configurationName, settings: merged)
+                    case .release:
+                        return .release(name: environment.configurationName, settings: merged)
+                    }
+                }
+            )
+        }()
+
+        return .target(
             name: module.implTarget,
             destinations: destinations,
             product: product,
@@ -45,7 +63,7 @@ public enum TargetFactory {
             sources: ["Sources/**"],
             resources: resources,
             dependencies: dependencies,
-            settings: .regular
+            settings: settings
         )
     }
 

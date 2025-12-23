@@ -7,7 +7,8 @@ public enum ProjectFactory {
         product: Product = .framework,
         dependencies: [Dependency],
         testDependencies: [Dependency] = [],
-        hasResources: Bool = false
+        hasResources: Bool = false,
+        additionalSettings: SettingsDictionary = [:]
     ) -> Project {
         validateExternalDependenciesAllowed(module: module, dependencies: dependencies, context: "makeFeature(dependencies:)")
         validateExternalDependenciesAllowed(module: module, dependencies: testDependencies, context: "makeFeature(testDependencies:)")
@@ -25,7 +26,8 @@ public enum ProjectFactory {
             destinations: destinations,
             product: product,
             dependencies: implDeps,
-            resources: hasResources ? ["Resources/**"] : nil
+            resources: hasResources ? ["Resources/**"] : nil,
+            additionalSettings: additionalSettings
         )
 
         let testing = TargetFactory.makeTesting(
