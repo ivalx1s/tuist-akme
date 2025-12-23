@@ -47,6 +47,10 @@ graph.dot
 Packages/
 .swiftpm/
 
+### Python ###
+__pycache__/
+*.py[cod]
+
 ### Obj-C / Swift ###
 # Coverage reports
 *.gcno

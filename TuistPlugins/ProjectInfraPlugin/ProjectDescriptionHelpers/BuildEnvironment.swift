@@ -58,7 +58,7 @@ public extension Settings {
     static var externalDependencyModuleSettings: Settings {
         .settings(
             configurations: BuildEnvironment.allCases.map { environment in
-                var settings = environment.settings()
+                let settings = environment.settings()
                 switch environment {
                 case .debug:
                     return .debug(name: environment.configurationName, settings: settings)

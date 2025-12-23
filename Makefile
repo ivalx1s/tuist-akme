@@ -1,5 +1,5 @@
 #MARK: - Configuration
-.PHONY: bootstrap generate clean
+.PHONY: bootstrap generate clean sync-modules module tuist-generate
 
 # Default action when typing just 'make'
 .DEFAULT_GOAL := generate
@@ -39,8 +39,27 @@ generate:
 		echo "🆕 First time run detected. Initializing..."; \
 		$(MAKE) bootstrap; \
 	fi
-	@echo "🏗 Generating Xcode project..."
-	@tuist generate $(tuist_generate_args)
+	@$(MAKE) sync-modules
+	@$(MAKE) tuist-generate
+
+#MARK: - Modules
+sync-modules:
+	@python3 Scripts/sync_modules.py
+
+module:
+	@if [ -z "$(layer)" ] || [ -z "$(name)" ]; then \
+		echo "Usage: make module layer=<feature|core|shared|utility> name=<ModuleName>"; \
+		exit 1; \
+	fi
+	@python3 Scripts/create_module.py --layer $(layer) --name $(name)
+	@$(MAKE) sync-modules
+
+tuist-generate:
+	@if [ -n "$(verbose)" ] || [ -n "$(VERBOSE)" ] || [ -n "$(V)" ] || [ -n "$(v)" ]; then \
+		python3 Scripts/tuist_generate.py --verbose $(tuist_generate_args); \
+	else \
+		python3 Scripts/tuist_generate.py $(tuist_generate_args); \
+	fi
 
 #MARK: - Clean Project
 # Removes artifacts AND the .bootstrapped marker

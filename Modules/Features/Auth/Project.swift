@@ -2,7 +2,7 @@
 @preconcurrency import ProjectInfraPlugin
 @preconcurrency import ProjectDescriptionHelpers
 
-let module = ModuleID(.feature, "Auth")
+let module = ModuleID.feature(.auth)
 
 let project = ProjectFactory.makeFeature(
     module: module,
@@ -10,9 +10,9 @@ let project = ProjectFactory.makeFeature(
     product: .framework,
     dependencies: [
         .external(dependency: .algorithms),
-        // Example: .interface(ModuleID(.core, "Networking"))
+//         Example: .interface(.core(.networking))
     ],
     testDependencies: [
-        // Example: .testing(ModuleID(.core, "Networking"))
+        // Example: .testing(.core(.networking))
     ]
 )
