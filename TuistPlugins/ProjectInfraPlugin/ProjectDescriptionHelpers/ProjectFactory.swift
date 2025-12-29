@@ -40,9 +40,14 @@ public enum ProjectFactory {
         let dependencies: [TargetDependency] =
             [compositionRoot.dependency] + embeddedExtensions.map(\.dependency)
 
-        let entitlements = EntitlementsFactory.make(hostBundleId: bundleId, capabilities: capabilities)
+        let targetName = appName ?? projectName
+        let entitlements = EntitlementsFactory.make(
+            hostBundleId: bundleId,
+            destinations: destinations,
+            capabilities: capabilities
+        )
         let appTarget = TargetFactory.makeApp(
-            name: appName ?? projectName,
+            name: targetName,
             destinations: destinations,
             bundleId: bundleId,
             deploymentTargets: resolvedDeploymentTargets,
@@ -79,7 +84,11 @@ public enum ProjectFactory {
         developmentTeamId: String? = nil,
         extensionPointIdentifier: String = "com.apple.widgetkit-extension"
     ) -> Project {
-        let entitlements = EntitlementsFactory.make(hostBundleId: hostBundleId, capabilities: capabilities)
+        let entitlements = EntitlementsFactory.make(
+            hostBundleId: hostBundleId,
+            destinations: destinations,
+            capabilities: capabilities
+        )
         let target = TargetFactory.makeExtension(
             name: name,
             hostBundleId: hostBundleId,

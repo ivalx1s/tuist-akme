@@ -13,9 +13,13 @@ extension [Capability] {
         .iCloud(services: [.cloudKit]),
         .keychainSharing(),
         .keychainSharing(group: .custom(id: "testKeychainGroupId")),
-        .walletPassType(id: .default),
         .applePayMerchant(),
-        .iCloudUbiquityContainer()
+        .iCloudUbiquityContainer(),
+        .nfcTagReading(formats: [.tag]),
+        .wiFiAware([Capability.WiFiAwareRole.publish, .subscribe]),
+        .healthKit([.backgroundDelivery]),
+//        .portal(.appAttest, environment: .development),
+        
 //        .iCloudCloudKitContainer()
     ]
 }

@@ -1,5 +1,5 @@
 #MARK: - Configuration
-.PHONY: bootstrap ensure-env generate clean sync-modules module tuist-generate check-docs check-graph
+.PHONY: bootstrap ensure-env generate clean sync-modules sync-portal-capabilities module tuist-generate check-docs check-graph
 
 # Default action when typing just 'make'
 .DEFAULT_GOAL := generate
@@ -121,6 +121,10 @@ ensure-env:
 #MARK: - Modules
 sync-modules:
 	@python3 Scripts/sync_modules.py
+
+sync-portal-capabilities:
+	@# Intended for Tuist manifests/plugins helpers (not app source code).
+	@python3 Scripts/sync_portal_capabilities.py
 
 check-docs:
 	@# Intended for Tuist manifests/plugins helpers (not app source code).
