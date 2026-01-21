@@ -4,6 +4,9 @@ import PackageDescription
 #if TUIST
 import ProjectDescription
 
+private let iosMinVersion = Environment.iosMinVersion.getString(default: "16.0")
+private let macosMinVersion = Environment.macosMinVersion.getString(default: "13.0")
+
 private enum BuildEnvironment: CaseIterable {
     case debug
     case release
@@ -18,8 +21,8 @@ private enum BuildEnvironment: CaseIterable {
     func settings() -> SettingsDictionary {
         var settings: SettingsDictionary = [:]
 
-        settings["IPHONEOS_DEPLOYMENT_TARGET"] = "16.0"
-        settings["MACOSX_DEPLOYMENT_TARGET"] = "13.0"
+        settings["IPHONEOS_DEPLOYMENT_TARGET"] = .string(iosMinVersion)
+        settings["MACOSX_DEPLOYMENT_TARGET"] = .string(macosMinVersion)
         settings["SWIFT_VERSION"] = "5.9"
         settings["STRING_CATALOG_GENERATE_SYMBOLS"] = "YES"
         settings["ENABLE_USER_SCRIPT_SANDBOXING"] = "YES"

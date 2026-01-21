@@ -12,7 +12,8 @@ else
 	IS_CI := false
 endif
 
-# Load local environment variables (if present) and export them to child processes (Tuist).
+# Load repo-tracked and local environment variables (if present) and export them to child processes (Tuist).
+-include .env.shared
 -include .env
 export
 
@@ -31,6 +32,71 @@ ifndef TUIST_BUNDLE_ID_SUFFIX
 TUIST_BUNDLE_ID_SUFFIX := $(BUNDLE_ID_SUFFIX)
 endif
 export TUIST_BUNDLE_ID_SUFFIX
+
+# Repo-tracked configuration is defined in `.env.shared` and mapped into `TUIST_*` so Tuist
+# manifests can read it when sandboxing is enabled.
+ifneq ($(strip $(WORKSPACE_NAME)),)
+ifndef TUIST_WORKSPACE_NAME
+TUIST_WORKSPACE_NAME := $(WORKSPACE_NAME)
+endif
+export TUIST_WORKSPACE_NAME
+endif
+
+ifneq ($(strip $(IOS_APP_PROJECT_NAME)),)
+ifndef TUIST_IOS_APP_PROJECT_NAME
+TUIST_IOS_APP_PROJECT_NAME := $(IOS_APP_PROJECT_NAME)
+endif
+export TUIST_IOS_APP_PROJECT_NAME
+endif
+
+ifneq ($(strip $(IOS_APP_NAME)),)
+ifndef TUIST_IOS_APP_NAME
+TUIST_IOS_APP_NAME := $(IOS_APP_NAME)
+endif
+export TUIST_IOS_APP_NAME
+endif
+
+ifneq ($(strip $(IOS_MIN_VERSION)),)
+ifndef TUIST_IOS_MIN_VERSION
+TUIST_IOS_MIN_VERSION := $(IOS_MIN_VERSION)
+endif
+export TUIST_IOS_MIN_VERSION
+endif
+
+ifneq ($(strip $(IOS_BASE_BUNDLE_ID)),)
+ifndef TUIST_IOS_BASE_BUNDLE_ID
+TUIST_IOS_BASE_BUNDLE_ID := $(IOS_BASE_BUNDLE_ID)
+endif
+export TUIST_IOS_BASE_BUNDLE_ID
+endif
+
+ifneq ($(strip $(MACOS_APP_PROJECT_NAME)),)
+ifndef TUIST_MACOS_APP_PROJECT_NAME
+TUIST_MACOS_APP_PROJECT_NAME := $(MACOS_APP_PROJECT_NAME)
+endif
+export TUIST_MACOS_APP_PROJECT_NAME
+endif
+
+ifneq ($(strip $(MACOS_APP_NAME)),)
+ifndef TUIST_MACOS_APP_NAME
+TUIST_MACOS_APP_NAME := $(MACOS_APP_NAME)
+endif
+export TUIST_MACOS_APP_NAME
+endif
+
+ifneq ($(strip $(MACOS_MIN_VERSION)),)
+ifndef TUIST_MACOS_MIN_VERSION
+TUIST_MACOS_MIN_VERSION := $(MACOS_MIN_VERSION)
+endif
+export TUIST_MACOS_MIN_VERSION
+endif
+
+ifneq ($(strip $(MACOS_BASE_BUNDLE_ID)),)
+ifndef TUIST_MACOS_BASE_BUNDLE_ID
+TUIST_MACOS_BASE_BUNDLE_ID := $(MACOS_BASE_BUNDLE_ID)
+endif
+export TUIST_MACOS_BASE_BUNDLE_ID
+endif
 
 #MARK: - Bootstrap (Setup Environment)
 # 1. Checks/Installs Homebrew

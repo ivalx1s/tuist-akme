@@ -18,9 +18,13 @@ public enum BuildEnvironment: String, CaseIterable {
 
     /// Default build settings for this environment.
     public func settings() -> SettingsDictionary {
+        let iosMinVersion = Environment.iosMinVersion.getString(default: "16.0")
+        let macosMinVersion = Environment.macosMinVersion.getString(default: "13.0")
+
         var settings: SettingsDictionary = [:]
 
-        settings["IPHONEOS_DEPLOYMENT_TARGET"] = "16.0"
+        settings["IPHONEOS_DEPLOYMENT_TARGET"] = .string(iosMinVersion)
+        settings["MACOSX_DEPLOYMENT_TARGET"] = .string(macosMinVersion)
         settings["SWIFT_VERSION"] = "6.2"
         settings["STRING_CATALOG_GENERATE_SYMBOLS"] = "YES"
         settings["ENABLE_USER_SCRIPT_SANDBOXING"] = "YES"

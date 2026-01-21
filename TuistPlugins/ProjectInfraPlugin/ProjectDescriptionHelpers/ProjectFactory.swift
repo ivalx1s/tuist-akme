@@ -27,10 +27,12 @@ public enum ProjectFactory {
         automaticSigning: Bool = true
     ) -> Project {
         let resolvedDeploymentTargets: DeploymentTargets = deploymentTargets ?? {
+            let iosMinVersion = Environment.iosMinVersion.getString(default: "16.0")
+            let macosMinVersion = Environment.macosMinVersion.getString(default: "13.0")
             let platforms = destinations.platforms
             return .multiplatform(
-                iOS: platforms.contains(.iOS) ? "16.0" : nil,
-                macOS: platforms.contains(.macOS) ? "13.0" : nil,
+                iOS: platforms.contains(.iOS) ? iosMinVersion : nil,
+                macOS: platforms.contains(.macOS) ? macosMinVersion : nil,
                 watchOS: nil,
                 tvOS: nil,
                 visionOS: nil
@@ -166,10 +168,12 @@ public enum ProjectFactory {
         let appTargetName = appName ?? projectName
 
         let resolvedDeploymentTargets: DeploymentTargets = deploymentTargets ?? {
+            let iosMinVersion = Environment.iosMinVersion.getString(default: "16.0")
+            let macosMinVersion = Environment.macosMinVersion.getString(default: "13.0")
             let platforms = destinations.platforms
             return .multiplatform(
-                iOS: platforms.contains(.iOS) ? "16.0" : nil,
-                macOS: platforms.contains(.macOS) ? "13.0" : nil,
+                iOS: platforms.contains(.iOS) ? iosMinVersion : nil,
+                macOS: platforms.contains(.macOS) ? macosMinVersion : nil,
                 watchOS: nil,
                 tvOS: nil,
                 visionOS: nil

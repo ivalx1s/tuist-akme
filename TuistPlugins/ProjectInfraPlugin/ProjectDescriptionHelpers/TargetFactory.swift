@@ -16,10 +16,12 @@ public enum TargetFactory {
 
     /// Default multiplatform deployment targets for the given destinations.
     private static func deploymentTargets(for destinations: Destinations) -> DeploymentTargets {
+        let iosMinVersion = Environment.iosMinVersion.getString(default: "16.0")
+        let macosMinVersion = Environment.macosMinVersion.getString(default: "13.0")
         let platforms = destinations.platforms
         return .multiplatform(
-            iOS: platforms.contains(.iOS) ? "16.0" : nil,
-            macOS: platforms.contains(.macOS) ? "13.0" : nil,
+            iOS: platforms.contains(.iOS) ? iosMinVersion : nil,
+            macOS: platforms.contains(.macOS) ? macosMinVersion : nil,
             watchOS: nil,
             tvOS: nil,
             visionOS: nil

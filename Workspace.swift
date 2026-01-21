@@ -1,7 +1,7 @@
 import ProjectDescription
 
 let workspace = Workspace(
-    name: "AcmeApp",
+    name: Environment.workspaceName.getString(default: "AcmeApp"),
     projects: [
         "Apps/**",
         "Modules/**",

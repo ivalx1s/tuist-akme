@@ -3,13 +3,16 @@ import ProjectInfraPlugin
 import ProjectDescriptionHelpers
 
 let developmentTeamId = Environment.developmentTeamId.getString(default: "")
+let projectName = Environment.macosAppProjectName.getString(default: "macOSApp")
+let appName = Environment.macosAppName.getString(default: "AcmeMacApp")
+let macosMinVersion = Environment.macosMinVersion.getString(default: "13.0")
 
 let project = ProjectFactory.makeHostApp(
-    projectName: "macOSApp",
-    appName: "AcmeMacApp",
+    projectName: projectName,
+    appName: appName,
     bundleId: AppIdentifiers.macOSApp.bundleId,
     destinations: .macOS,
-    deploymentTargets: .macOS("13.0"),
+    deploymentTargets: .macOS(macosMinVersion),
     sources: ["Sources/**"],
     resources: ["Resources/**"],
     compositionRoot: .app,

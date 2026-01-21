@@ -1,3 +1,4 @@
+import ProjectDescription
 import ProjectInfraPlugin
 
 /// Canonical bundle identifiers shared across manifests.
@@ -9,7 +10,9 @@ public enum AppIdentifiers {
     /// iOS host app bundle identifier.
     public enum iOSApp {
         /// Base bundle identifier without any local environment suffix.
-        public static let baseBundleId = "com.acme.app"
+        public static var baseBundleId: String {
+            Environment.iosBaseBundleId.getString(default: "com.acme.app")
+        }
 
         /// Bundle identifier with any configured local environment suffix applied.
         public static var bundleId: String { ConfigurationHelper.applyEnvironmentSuffix(to: baseBundleId) }
@@ -18,7 +21,9 @@ public enum AppIdentifiers {
     /// macOS host app bundle identifier.
     public enum macOSApp {
         /// Base bundle identifier without any local environment suffix.
-        public static let baseBundleId = "com.acme.mac-app"
+        public static var baseBundleId: String {
+            Environment.macosBaseBundleId.getString(default: "com.acme.mac-app")
+        }
 
         /// Bundle identifier with any configured local environment suffix applied.
         public static var bundleId: String { ConfigurationHelper.applyEnvironmentSuffix(to: baseBundleId) }
