@@ -659,84 +659,180 @@ public enum EntitlementsFactory {
 
     /// Resolves the explicit shared identifier root used for cross-platform capability identifiers.
     ///
-    /// This applies the local environment suffix (when present).
+    /// Shared identifiers are repo-tracked and must be stable; local namespacing is opt-in via
+    /// `.custom(..., namespacing: .environmentSuffix)`.
     private static func resolveSharedRoot() -> String {
         let coreRoot = Environment.coreRoot.getString(default: "com.acme.akmeapp")
         let configured = Environment.sharedRoot.getString(default: "\(coreRoot).shared")
-        return ConfigurationHelper.applyEnvironmentSuffix(to: configured)
+        let trimmed = configured.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        validateSharedIdentifierRoot(trimmed, coreRoot: coreRoot)
+
+        // Important: shared identifiers are repo-tracked and must be stable. Do not apply local
+        // environment namespacing here; use `.custom(..., namespacing: .environmentSuffix)` to opt in.
+        return trimmed
+    }
+
+    private static func validateSharedIdentifierRoot(_ sharedRoot: String, coreRoot: String) {
+        guard !sharedRoot.isEmpty else {
+            fatalError(
+                """
+                🛑 INVALID SHARED IDENTIFIER ROOT 🛑
+                ---------------------------------------------------
+                Environment: TUIST_SHARED_ROOT
+                Rule: Shared identifier root must not be empty.
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        guard sharedRoot == sharedRoot.lowercased() else {
+            fatalError(
+                """
+                🛑 INVALID SHARED IDENTIFIER ROOT 🛑
+                ---------------------------------------------------
+                Environment: TUIST_SHARED_ROOT
+                Rule: Shared identifier root must be lowercase.
+                Value: \(sharedRoot)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        guard !sharedRoot.contains("*") else {
+            fatalError(
+                """
+                🛑 INVALID SHARED IDENTIFIER ROOT 🛑
+                ---------------------------------------------------
+                Environment: TUIST_SHARED_ROOT
+                Rule: Shared identifier root must not contain wildcard ('*') characters.
+                Value: \(sharedRoot)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        let expectedPrefix = coreRoot.trimmingCharacters(in: .whitespacesAndNewlines) + "."
+        guard sharedRoot.hasPrefix(expectedPrefix) else {
+            fatalError(
+                """
+                🛑 INVALID SHARED IDENTIFIER ROOT 🛑
+                ---------------------------------------------------
+                Environment: TUIST_SHARED_ROOT
+                Rule: Shared identifier root must be derived from the core root.
+                Expected prefix: \(expectedPrefix)
+                Value: \(sharedRoot)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        validateLowercaseReverseDNSIdentifier(
+            sharedRoot,
+            title: "🛑 INVALID SHARED IDENTIFIER ROOT 🛑",
+            capability: "Shared Identifier Root",
+            prefixDescription: "TUIST_SHARED_ROOT"
+        )
     }
 
     /// Resolves an App Group identifier entry (`com.apple.security.application-groups`).
     ///
     /// Default: `group.<host bundle id>`
     private static func resolveAppGroup(_ id: Capability.Identifier, hostBundleId: String, sharedRoot: String) -> String {
+        let resolved: String
         switch id {
         case .default:
-            return "group.\(hostBundleId)"
+            resolved = "group.\(hostBundleId)"
         case .shared:
-            return "group.\(sharedRoot)"
+            resolved = "group.\(sharedRoot)"
         case let .custom(id: customId, namespacing: namespacing):
             let trimmed = customId.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard trimmed.hasPrefix("group.") else {
-                fatalError(
-                    """
-                    🛑 INVALID APP GROUP IDENTIFIER 🛑
-                    ---------------------------------------------------
-                    Capability: App Groups
-                    Rule: Custom App Group identifiers must start with 'group.'.
-                    Value: \(customId)
-                    ---------------------------------------------------
-                    """
-                )
-            }
-
-            return applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
+            resolved = applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
         }
+
+        validatePrefixedLowercaseReverseDNSIdentifier(
+            resolved,
+            prefix: "group.",
+            title: "🛑 INVALID APP GROUP IDENTIFIER 🛑",
+            capability: "App Groups"
+        )
+        return resolved
     }
 
     /// Resolves an iCloud container identifier (used for iCloud Documents and CloudKit containers).
     ///
     /// Default: `iCloud.<host bundle id>`
     private static func resolveICloudContainer(_ id: Capability.Identifier, hostBundleId: String, sharedRoot: String) -> String {
+        let resolved: String
         switch id {
         case .default:
-            return "iCloud.\(hostBundleId)"
+            resolved = "iCloud.\(hostBundleId)"
         case .shared:
-            return "iCloud.\(sharedRoot)"
+            resolved = "iCloud.\(sharedRoot)"
         case let .custom(id: customId, namespacing: namespacing):
             let trimmed = customId.trimmingCharacters(in: .whitespacesAndNewlines)
-            return applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
+            resolved = applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
         }
+
+        validateICloudContainerIdentifier(resolved)
+        return resolved
+    }
+
+    private static func validateICloudContainerIdentifier(_ identifier: String) {
+        validatePrefixedLowercaseReverseDNSIdentifier(
+            identifier,
+            prefix: "iCloud.",
+            title: "🛑 INVALID ICLOUD CONTAINER IDENTIFIER 🛑",
+            capability: "iCloud"
+        )
     }
 
     /// Resolves an Apple Pay merchant identifier entry (`com.apple.developer.in-app-payments`).
     ///
     /// Default: `merchant.<host bundle id>`
     private static func resolveMerchantIdentifier(_ id: Capability.Identifier, hostBundleId: String, sharedRoot: String) -> String {
+        let resolved: String
         switch id {
         case .default:
-            return "merchant.\(hostBundleId)"
+            resolved = "merchant.\(hostBundleId)"
         case .shared:
-            return "merchant.\(sharedRoot)"
+            resolved = "merchant.\(sharedRoot)"
         case let .custom(id: customId, namespacing: namespacing):
             let trimmed = customId.trimmingCharacters(in: .whitespacesAndNewlines)
-            return applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
+            resolved = applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
         }
+
+        validatePrefixedLowercaseReverseDNSIdentifier(
+            resolved,
+            prefix: "merchant.",
+            title: "🛑 INVALID MERCHANT IDENTIFIER 🛑",
+            capability: "Apple Pay"
+        )
+        return resolved
     }
 
     /// Resolves a Wallet pass type identifier entry (`com.apple.developer.pass-type-identifiers`).
     ///
     /// Default: `pass.<host bundle id>`
     private static func resolvePassTypeIdentifier(_ id: Capability.Identifier, hostBundleId: String, sharedRoot: String) -> String {
+        let resolved: String
         switch id {
         case .default:
-            return "pass.\(hostBundleId)"
+            resolved = "pass.\(hostBundleId)"
         case .shared:
-            return "pass.\(sharedRoot)"
+            resolved = "pass.\(sharedRoot)"
         case let .custom(id: customId, namespacing: namespacing):
             let trimmed = customId.trimmingCharacters(in: .whitespacesAndNewlines)
-            return applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
+            resolved = applyNamespacing(trimmed, namespacing: namespacing, afterComponents: 3)
         }
+
+        validatePrefixedLowercaseReverseDNSIdentifier(
+            resolved,
+            prefix: "pass.",
+            title: "🛑 INVALID PASS TYPE IDENTIFIER 🛑",
+            capability: "Wallet"
+        )
+        return resolved
     }
 
     /// Resolves an identifier that must be prefixed with an Xcode-provided identifier prefix macro.
@@ -758,7 +854,133 @@ public enum EntitlementsFactory {
             unprefixed = applyNamespacing(trimmed, namespacing: namespacing, afterComponents: afterComponents)
         }
 
+        validateLowercaseReverseDNSIdentifier(
+            unprefixed,
+            title: "🛑 INVALID IDENTIFIER 🛑",
+            capability: "Entitlements",
+            prefixDescription: prefixMacro
+        )
+
         return "\(prefixMacro)\(unprefixed)"
+    }
+
+    private static func validatePrefixedLowercaseReverseDNSIdentifier(_ identifier: String, prefix: String, title: String, capability: String) {
+        guard identifier.hasPrefix(prefix) else {
+            fatalError(
+                """
+                \(title)
+                ---------------------------------------------------
+                Capability: \(capability)
+                Rule: Identifiers must start with '\(prefix)'.
+                Value: \(identifier)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        guard !identifier.contains("*") else {
+            fatalError(
+                """
+                \(title)
+                ---------------------------------------------------
+                Capability: \(capability)
+                Rule: Identifiers must not contain wildcard ('*') characters.
+                Value: \(identifier)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        let remainder = String(identifier.dropFirst(prefix.count))
+        guard !remainder.isEmpty else {
+            fatalError(
+                """
+                \(title)
+                ---------------------------------------------------
+                Capability: \(capability)
+                Rule: Identifier must include a reverse-DNS name after '\(prefix)'.
+                Value: \(identifier)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        validateLowercaseReverseDNSIdentifier(
+            remainder,
+            title: title,
+            capability: capability,
+            prefixDescription: prefix,
+            valueForDisplay: identifier
+        )
+    }
+
+    private static func validateLowercaseReverseDNSIdentifier(
+        _ identifier: String,
+        title: String,
+        capability: String,
+        prefixDescription: String,
+        valueForDisplay: String? = nil
+    ) {
+        let displayValue = valueForDisplay ?? identifier
+        guard identifier == identifier.lowercased() else {
+            fatalError(
+                """
+                \(title)
+                ---------------------------------------------------
+                Capability: \(capability)
+                Rule: Identifier components must be lowercase.
+                Prefix: \(prefixDescription)
+                Value: \(displayValue)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        guard identifier.range(of: #"^[a-z0-9.-]+$"#, options: .regularExpression) != nil else {
+            fatalError(
+                """
+                \(title)
+                ---------------------------------------------------
+                Capability: \(capability)
+                Rule: Identifier may contain only [a-z0-9.-].
+                Prefix: \(prefixDescription)
+                Value: \(displayValue)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        let segments = identifier.split(separator: ".").map(String.init)
+        guard !segments.isEmpty, segments.allSatisfy({ !$0.isEmpty }) else {
+            fatalError(
+                """
+                \(title)
+                ---------------------------------------------------
+                Capability: \(capability)
+                Rule: Identifier must not contain empty components.
+                Prefix: \(prefixDescription)
+                Value: \(displayValue)
+                ---------------------------------------------------
+                """
+            )
+        }
+
+        for segment in segments {
+            guard segment.range(of: #"^[a-z][a-z0-9-]*$"#, options: .regularExpression) != nil else {
+                fatalError(
+                    """
+                    \(title)
+                    ---------------------------------------------------
+                    Capability: \(capability)
+                    Rule: Each component must match ^[a-z][a-z0-9-]*$.
+                    Prefix: \(prefixDescription)
+                    Invalid component: \(segment)
+                    Value: \(displayValue)
+                    ---------------------------------------------------
+                    """
+                )
+            }
+        }
     }
 
     /// Applies local namespacing rules to a custom identifier.

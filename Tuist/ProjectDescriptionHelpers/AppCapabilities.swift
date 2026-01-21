@@ -1,7 +1,5 @@
 import ProjectInfraPlugin
 
-
-
 /// Canonical capability definitions shared across the host app and its extensions.
 ///
 /// Keep this centralized so app extensions can "inherit" capabilities without duplicating
@@ -12,7 +10,7 @@ extension [Capability] {
         .appGroups(),
         .iCloud(services: [.cloudKit]),
         .keychainSharing(),
-        .keychainSharing(group: .custom(id: "testKeychainGroupId")),
+        .keychainSharing(group: .custom(id: "com.acme.akmeapp.keychain.test")),
         .applePayMerchant(),
         .iCloudUbiquityContainer(),
         .nfcTagReading(formats: [.tag]),

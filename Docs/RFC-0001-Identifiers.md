@@ -264,7 +264,16 @@ This suffix MUST apply consistently to:
 - host bundle IDs
 - extension bundle IDs (because they are derived from host IDs)
 - module bundle IDs
-- shared capability identifiers derived from `sharedRoot`
+- capability identifiers derived from host bundle IDs (Level B)
+
+This suffix MUST NOT apply implicitly to:
+
+- shared capability identifiers derived from `sharedRoot` (Level C)
+
+Rationale:
+
+- `sharedRoot`-derived identifiers are repo-tracked and must remain stable across developers and CI.
+- Per-developer namespacing for shared capability identifiers is still possible via `.custom(..., namespacing: .environmentSuffix)` when explicitly needed.
 
 ## Capability identifiers (App Groups, iCloud, Keychain…)
 
@@ -324,6 +333,7 @@ Notes:
 
 - iCloud container identifiers must not contain wildcard (`*`) characters.
 - `$(AppIdentifierPrefix)` / `$(TeamIdentifierPrefix)` are Xcode build setting macros and are not subject to our lowercase normalization rules.
+- During signing, the entitlements embedded into the app must be compatible with (and typically a subset of) the entitlements granted by the provisioning profile. Mismatches (for example, requesting an iCloud container identifier not enabled for the App ID/profile) will fail at install/build time.
 
 ## Implementation notes (Tuist DSL)
 
@@ -383,6 +393,7 @@ Apple:
 - App Clips App ID prefix rule: https://developer.apple.com/help/account/identifiers/register-an-app-id-for-app-clips/
 - App Groups entitlement format: https://developer.apple.com/tutorials/data/documentation/bundleresources/entitlements/com.apple.security.application-groups.json
 - Keychain sharing (access group prefixing behavior): https://developer.apple.com/tutorials/data/documentation/security/sharing-access-to-keychain-items-among-a-collection-of-apps.json
+- Entitlements troubleshooting (profile vs app entitlements mismatch): https://developer.apple.com/library/archive/technotes/tn2415/_index.html
 - iCloud container IDs begin with `iCloud.`: https://developer.apple.com/library/archive/documentation/DataManagement/Conceptual/CloudKitWebServicesReference/SettingUpWebServices.html
 - iCloud container IDs must not contain wildcard `*`: https://developer.apple.com/library/archive/documentation/General/Conceptual/iCloudDesignGuide/Chapters/iCloudFundametals.html
 - iCloud KVS entitlement default value reference: https://developer.apple.com/forums/thread/22867

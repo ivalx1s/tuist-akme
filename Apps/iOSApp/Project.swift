@@ -22,6 +22,8 @@ let project = ProjectFactory.makeHostApp(
     embeddedExtensions: [
         AppProjects.iOS.acmeWidget,
     ],
-    capabilities: .iOSPlusAppex,
+    capabilities: .iOSPlusAppex + [
+        .iCloudCloudKitContainer(container: .shared),
+    ],
     developmentTeamId: developmentTeamId
 )

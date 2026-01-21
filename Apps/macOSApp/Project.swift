@@ -18,7 +18,7 @@ let project = ProjectFactory.makeHostApp(
     compositionRoot: .app,
     capabilities: [
         .iCloudCloudKitContainer(),
-        
+        .iCloudCloudKitContainer(container: .shared)
     ],
     developmentTeamId: developmentTeamId,
     automaticSigning: true
