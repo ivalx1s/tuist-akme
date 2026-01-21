@@ -70,8 +70,8 @@ Bundle IDs (`CFBundleIdentifier`):
 
 - Uniquely identify an app throughout the system.
 - Allowed characters: alphanumerics, hyphen (`-`), and period (`.`).
-- Case-insensitive (but we still enforce lowercase for the parts we control).
-- The bundle ID in the app must match the bundle ID in App Store Connect; after uploading a build to App Store Connect, you can’t change the bundle ID.
+- Apple documents bundle IDs as case-insensitive, but in practice some tooling and deployment systems can behave as if they’re case-sensitive; we treat bundle IDs as case-sensitive for safety and enforce lowercase for the parts we control.
+- The bundle ID in the app must match the bundle ID you enter in App Store Connect; after you upload a build to App Store Connect, you can’t change the bundle ID **or delete the associated explicit App ID** in your developer account.
 
 Prefix-coupled targets:
 
@@ -331,9 +331,41 @@ When using **Level C (sharedRoot)**:
 
 Notes:
 
+- iCloud has multiple entitlements with different identifier “shapes”; don’t conflate container identifiers with the key-value store identifier (see below).
 - iCloud container identifiers must not contain wildcard (`*`) characters.
 - `$(AppIdentifierPrefix)` / `$(TeamIdentifierPrefix)` are Xcode build setting macros and are not subject to our lowercase normalization rules.
 - During signing, the entitlements embedded into the app must be compatible with (and typically a subset of) the entitlements granted by the provisioning profile. Mismatches (for example, requesting an iCloud container identifier not enabled for the App ID/profile) will fail at install/build time.
+
+### iCloud identifiers by entitlement key (clarification)
+
+Apple uses multiple iCloud entitlements that look similar but are *not* interchangeable:
+
+- **iCloud container identifiers** (container IDs):
+  - Used by:
+    - `com.apple.developer.ubiquity-container-identifiers` (iCloud Documents)
+    - `com.apple.developer.icloud-container-identifiers` (CloudKit)
+  - Value shape: `iCloud.<reverse-dns>`
+  - Notes:
+    - The first container ID in the list is treated as the app’s “primary” container.
+    - These values must not include wildcard (`*`) characters.
+
+- **iCloud key-value store identifier** (KVS identifier):
+  - Used by:
+    - `com.apple.developer.ubiquity-kvstore-identifier` (Key-Value Storage)
+  - Value shape: `$(TeamIdentifierPrefix)<reverse-dns>`
+
+### Keychain access groups (gotchas)
+
+Apple forms the effective keychain access group list as a concatenation of:
+
+1. `keychain-access-groups` (if present)
+2. the (auto-added) `application-identifier` / `com.apple.application-identifier` entitlement
+3. application group names from `com.apple.security.application-groups`
+
+Practical implications:
+
+- An app always has a private access group via its application identifier, even if you don’t enable Keychain Sharing.
+- You can use App Group names as keychain access group names **without** adding them to `keychain-access-groups`.
 
 ## Implementation notes (Tuist DSL)
 
