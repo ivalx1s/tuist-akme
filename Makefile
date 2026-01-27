@@ -1,5 +1,5 @@
 #MARK: - Configuration
-.PHONY: bootstrap ensure-env generate clean sync-modules sync-portal-capabilities module tuist-generate check-docs check-graph
+.PHONY: bootstrap ensure-env generate clean sync-modules sync-portal-capabilities module tuist-generate check-docs check-graph setup-tools setup-tools-check
 
 # Default action when typing just 'make'
 .DEFAULT_GOAL := generate
@@ -97,6 +97,13 @@ TUIST_MACOS_MIN_VERSION := $(MACOS_MIN_VERSION)
 endif
 export TUIST_MACOS_MIN_VERSION
 endif
+
+#MARK: - Setup Tools
+setup-tools:
+	@./Scripts/setup-tools.sh
+
+setup-tools-check:
+	@./Scripts/setup-tools.sh --check
 
 #MARK: - Bootstrap (Setup Environment)
 # 1. Checks/Installs Homebrew

@@ -70,8 +70,23 @@ Podfile.lock
 
 ### Other Editors ###
 .vscode/
+.idea/
 *.swp
 *~
+
+### Temporary / Debug ###
+# Agent workspace, logs, scratch files
+.temp/
+*.log
+logs/
+
+### AI Assistants ###
+# Local Claude Code / Codex CLI state (skills may be committed separately)
+.claude/settings.local.json
+.codex/settings.local.json
+AGENTS.md
+CLAUDE.md
+.temp
 
 ### Credentials & Secrets ###
 # Pattern to prevent accidental commit of keys
@@ -81,3 +96,4 @@ Podfile.lock
 *.cer
 *.pem
 *.key
+
