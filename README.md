@@ -1,72 +1,73 @@
 # AcmeApp
 
-Multi-platform (iOS/macOS) приложение на базе [Tuist](https://tuist.io) с модульной архитектурой и composition-root паттерном.
+Multi-platform (iOS/macOS) application template built on [Tuist](https://tuist.io)
+with a modular architecture and the composition-root pattern.
 
-## Быстрый старт
+## Quick start
 
 ```bash
-# Клонируем и генерим проект
+# Clone and generate the project
 git clone <repo-url>
 cd tuist-akme
 make
 ```
 
-Всё. `make` сам:
-1. Установит Homebrew (если нет)
-2. Установит Tuist (если нет)
-3. Спросит Team ID и Bundle Suffix (можно скипнуть)
-4. Подтянет зависимости (`tuist install`)
-5. Сгенерит и откроет Xcode workspace
+That is all. `make` will:
+1. Install Homebrew (if missing)
+2. Install Tuist (if missing)
+3. Ask for a Team ID and Bundle Suffix (both skippable)
+4. Fetch dependencies (`tuist install`)
+5. Generate and open the Xcode workspace
 
-## Структура проекта
+## Project structure
 
 ```
-├── Apps/                          # Хост-приложения
-│   ├── iOSApp/                    # iOS приложение
-│   │   └── Extensions/            # App extensions (виджеты и т.д.)
-│   └── macOSApp/                  # macOS приложение
-├── Modules/                       # Модули
-│   ├── CompositionRoots/          # Точки сборки (wiring)
-│   ├── Features/                  # Фичи
-│   ├── Core/                      # Инфраструктура
-│   ├── Shared/                    # Общие компоненты
-│   └── Utility/                   # Утилиты
+├── Apps/                          # Host applications
+│   ├── iOSApp/                    # iOS app
+│   │   └── Extensions/            # App extensions (widgets, etc.)
+│   └── macOSApp/                  # macOS app
+├── Modules/                       # Modules
+│   ├── CompositionRoots/          # Wiring points
+│   ├── Features/                  # Features
+│   ├── Core/                      # Infrastructure
+│   ├── Shared/                    # Shared components
+│   └── Utility/                   # Utilities
 ├── Tuist/                         # Project-specific Tuist helpers
 ├── TuistPlugins/ProjectInfraPlugin/  # Core DSL (ProjectFactory, Capability, etc.)
-├── Scripts/                       # Python-скрипты автоматизации
-├── Docs/                          # Документация (RFC)
-├── .env.shared                    # Repo-tracked конфиг
-└── .env                           # Локальный конфиг (gitignored)
+├── Scripts/                       # Python automation scripts
+├── Docs/                          # Documentation (RFCs)
+├── .env.shared                    # Repo-tracked config
+└── .env                           # Local config (gitignored)
 ```
 
-## Команды
+## Commands
 
-| Команда | Описание |
-|---------|----------|
-| `make` | Генерит workspace (дефолт) |
-| `make bootstrap` | Полная инициализация с нуля |
-| `make module layer=feature name=Auth` | Создать новый модуль |
-| `make clean` | Почистить всё |
-| `make check-graph` | Проверить архитектурные правила |
+| Command | What it does |
+|---------|--------------|
+| `make` | Generates the workspace (default) |
+| `make bootstrap` | Full initialization from scratch |
+| `make module layer=feature name=Auth` | Creates a new module |
+| `make clean` | Cleans everything |
+| `make check-graph` | Validates architecture rules |
 
-## Модули
+## Modules
 
-Каждый feature-модуль состоит из 4 таргетов:
+Every feature module consists of 4 targets:
 
-| Таргет | Назначение |
-|--------|------------|
-| `AuthInterface` | Протоколы, публичные типы. **Без внешних зависимостей!** |
-| `Auth` | Реализация |
-| `AuthTesting` | Моки, фейки для тестов других модулей |
-| `AuthTests` | Unit-тесты |
+| Target | Purpose |
+|--------|---------|
+| `AuthInterface` | Protocols and public types. **No external dependencies!** |
+| `Auth` | Implementation |
+| `AuthTesting` | Mocks and fakes for other modules' tests |
+| `AuthTests` | Unit tests |
 
-### Создание модуля
+### Creating a module
 
 ```bash
 make module layer=feature name=Payment
 ```
 
-Создаст `Modules/Features/Payment/` со структурой:
+Creates `Modules/Features/Payment/` with this layout:
 ```
 Payment/
 ├── Project.swift
@@ -76,146 +77,156 @@ Payment/
 └── Tests/
 ```
 
-### Зависимости между модулями
+### Dependencies between modules
 
 ```swift
-// В Project.swift модуля
+// In the module's Project.swift
 let project = ProjectFactory.makeFeature(
     module: .feature(.payment, scope: .common),
     dependencies: [
-        .interface(.feature(.auth)),      // Зависимость на интерфейс
-        .interface(.core(.networking)),   // Можно на core модули
-        .external(dependency: .algorithms), // Внешние (из allow-list)
+        .interface(.feature(.auth)),      // Depend on an interface
+        .interface(.core(.networking)),   // Core modules allowed
+        .external(dependency: .algorithms), // External (from the allow-list)
     ]
 )
 ```
 
-**Правила:**
-- Interface-таргеты НЕ могут иметь внешних зависимостей
-- Impl может зависеть только от Interface других модулей
-- Внешние зависимости должны быть в allow-list (`Tuist/ProjectDescriptionHelpers/ExternalDependency.swift`)
+**Rules:**
+- Interface targets must not have external dependencies
+- An implementation may depend only on other modules' Interface targets
+- External dependencies must be on the allow-list (`Tuist/ProjectDescriptionHelpers/ExternalDependency.swift`)
 
-## Composition Roots
+## Composition roots
 
-Composition root — единственное место где можно напрямую линковать Impl-таргеты:
+The composition root is the only place allowed to link Impl targets directly:
 
 ```swift
 // Modules/CompositionRoots/AppCompositionRoot/Project.swift
 let project = ProjectFactory.makeCompositionRoot(
     module: .app,
     dependencies: [
-        .module(.feature(.auth)),    // Линкует Auth + AuthInterface
+        .module(.feature(.auth)),    // Links Auth + AuthInterface
         .module(.feature(.payment)),
         .module(.core(.networking)),
     ]
 )
 ```
 
-Приложение зависит только от composition root:
+The application depends only on the composition root:
 
 ```swift
 // Apps/iOSApp/Project.swift
 let project = ProjectFactory.makeHostApp(
     projectName: projectName,
     bundleId: AppIdentifiers.iOSApp.bundleId,
-    compositionRoot: .app,  // ← вот тут
+    compositionRoot: .app,  // ← right here
     ...
 )
 ```
 
-## Конфигурация
+## Configuration
 
 ### Repo-tracked (`.env.shared`)
 
 ```bash
 WORKSPACE_NAME=AcmeApp
-CORE_ROOT=com.acme.akmeapp           # Корень для bundle ID
-SHARED_ROOT=com.acme.akmeapp.shared  # Для cross-platform capabilities
+CORE_ROOT=com.acme.akmeapp           # Bundle ID root
+SHARED_ROOT=com.acme.akmeapp.shared  # For cross-platform capabilities
 IOS_APP_NAME=AcmeApp
 IOS_MIN_VERSION=16.0
 ```
 
-### Локальная (`.env`, gitignored)
+### Local (`.env`, gitignored)
 
 ```bash
-DEVELOPMENT_TEAM_ID=XXXXXXXXXX       # Твой Apple Team ID
-BUNDLE_ID_SUFFIX=.ivan               # Чтоб не конфликтовать с другими
+DEVELOPMENT_TEAM_ID=XXXXXXXXXX       # Your Apple Team ID
+BUNDLE_ID_SUFFIX=.ivan               # Avoids collisions with teammates
 ```
 
-Bundle suffix вставляется после `com.acme`:
-- Было: `com.acme.akmeapp.app.ios`
-- Стало: `com.acme.ivan.akmeapp.app.ios`
+The bundle suffix is inserted after `com.acme`:
+- Before: `com.acme.akmeapp.app.ios`
+- After: `com.acme.ivan.akmeapp.app.ios`
 
-Это позволяет wildcard App ID `com.acme.*` матчить всех разработчиков.
+This lets the wildcard App ID `com.acme.*` match every developer.
 
-## Capabilities (Entitlements)
+## Capabilities (entitlements)
 
-DSL для описания capabilities в манифестах:
+A DSL for describing capabilities in manifests:
 
 ```swift
 capabilities: [
     .appGroups(),                              // group.<bundleId>
-    .keychainSharing(),                        // По умолчанию от host bundle ID
-    .iCloudCloudKitContainer(container: .shared), // Шаринг iOS↔macOS
+    .keychainSharing(),                        // Defaults to the host bundle ID
+    .iCloudCloudKitContainer(container: .shared), // iOS↔macOS sharing
     .healthKit([.backgroundDelivery]),
     .associatedDomains(["applinks:example.com"]),
 ]
 ```
 
-Уровни шаринга:
-- `.default` — от host bundle ID (app + extensions)
-- `.shared` — от `SHARED_ROOT` (iOS + macOS)
-- `.custom(id:)` — явный идентификатор
+Sharing levels:
+- `.default`: derived from the host bundle ID (app + extensions)
+- `.shared`: derived from `SHARED_ROOT` (iOS + macOS)
+- `.custom(id:)`: an explicit identifier
 
-## Внешние зависимости
+## External dependencies
 
-Добавление новой зависимости:
+Adding a new dependency:
 
-1. Добавить в `Package.swift`:
+1. Add it to `Package.swift`:
 ```swift
 dependencies: [
     .package(url: "https://github.com/...", from: "1.0.0"),
 ]
 ```
 
-2. Добавить в allow-list (`Tuist/ProjectDescriptionHelpers/ExternalDependency.swift`):
+2. Add it to the allow-list (`Tuist/ProjectDescriptionHelpers/ExternalDependency.swift`):
 ```swift
 public enum ExternalDependency: String, CaseIterable, Sendable, ExternalDependencyDescriptor {
     case myLib = "MyLib"
 
     public var allowedLayers: Set<ModuleLayer> {
         switch self {
-        case .myLib: return [.feature, .core]  // Где можно использовать
+        case .myLib: return [.feature, .core]  // Where it may be used
         }
     }
 }
 ```
 
-3. Перегенерить: `make`
+3. Regenerate: `make`
 
-## Тестирование
+## Testing
 
 ```bash
-# Запустить тесты модуля
+# Run a module's tests
 xcodebuild -workspace AcmeApp.xcworkspace \
   -scheme Auth \
   -destination 'platform=iOS Simulator,name=iPhone 16' \
   test
 ```
 
-Используем **Swift Testing** (не XCTest).
+We use **Swift Testing** (not XCTest).
 
-## Документация
+## Documentation
 
-- `Docs/RFC-0001-Identifiers.md` — Спецификация bundle ID и capability identifiers
-- `CLAUDE.md` — Инструкции для AI-ассистентов
+- `Docs/RFC-0001-Identifiers.md`: bundle ID and capability identifier specification
+- `CLAUDE.md`: instructions for AI assistants
 
 ## Tools
 
-| Тулза | Назначение | Установка |
-|-------|------------|-----------|
-| [Tuist](https://tuist.io) | Генерация Xcode проектов | `curl -Ls https://install.tuist.io \| bash` |
-| Python 3 | Скрипты автоматизации | Встроен в macOS |
+| Tool | Purpose | Install |
+|------|---------|---------|
+| [Tuist](https://tuist.io) | Xcode project generation | `curl -Ls https://install.tuist.io \| bash` |
+| Python 3 | Automation scripts | Built into macOS |
+
+## The Relux stack
+
+This template is part of the Relux stack: the
+[Relux](https://github.com/relux-works/swift-relux) unidirectional data-flow
+architecture for Swift 6, a family of modules around it, and agent-ready testing
+tools. The stack is how we build MVPs fast on agentic rails and then scale them into
+enterprise-grade apps: Tuist workspaces, strict modularization, and a UDF architecture
+proven in production for years. Browse the full picture in the
+[Relux Works open-source catalog](https://relux.works/en/open-source/).
 
 <!-- relux-ecosystem:start -->
 
